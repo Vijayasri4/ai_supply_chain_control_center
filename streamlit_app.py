@@ -1,6 +1,5 @@
 import streamlit as st
-from groq import Groq
-client = Groq(api_key=st.secrets["GROQ_API_KEY"])  #
+
 from config import get_api_key, get_model, DEFAULT_MODEL
 from utils.file_reader import (
     read_inventory,
