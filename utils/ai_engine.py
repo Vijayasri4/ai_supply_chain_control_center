@@ -114,6 +114,56 @@ DISRUPTION_ADVISOR_PROMPT = (
 )
 
 
+WEB_LEADS_PROMPT = (
+    "You are a sourcing assistant. You are given raw web search results "
+    "(title, link, snippet) about potential suppliers for an item a "
+    "company urgently needs after their usual supplier was disrupted. "
+    "Turn these into a short numbered list of the most promising leads. "
+    "For each: the company or site name, its link, and one line on why "
+    "it looks relevant. Only use information present in the search "
+    "results - never invent a phone number, email, or address that "
+    "isn't shown to you. If a result is clearly irrelevant (a news "
+    "article, a forum post, an unrelated product page), skip it. If "
+    "none of the results look like real suppliers, say so plainly. End "
+    "with one line reminding the reader to verify each lead directly "
+    "before ordering, since this came from an automated web search."
+)
+
+
+def summarize_web_leads(
+    item_name: str,
+    search_results: list[dict],
+    api_key: str,
+    model: str = "openai/gpt-oss-120b",
+) -> str:
+    """Turn raw web search results into a short, honest list of leads."""
+    client = _client(api_key)
+
+    formatted = "\n\n".join(
+        f"Title: {r.get('title', '')}\n"
+        f"Link: {r.get('href', '')}\n"
+        f"Snippet: {r.get('body', '')}"
+        for r in search_results
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            max_tokens=700,
+            messages=[
+                {"role": "system", "content": WEB_LEADS_PROMPT},
+                {
+                    "role": "user",
+                    "content": f"ITEM NEEDED: {item_name}\n\nSEARCH RESULTS:\n{formatted}",
+                },
+            ],
+        )
+    except Exception as exc:
+        raise AIEngineError(f"Groq API error: {exc}") from exc
+
+    return response.choices[0].message.content
+
+
 def recommend_disruption_response(
     context: str,
     api_key: str,

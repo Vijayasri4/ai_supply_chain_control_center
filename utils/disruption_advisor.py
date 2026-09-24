@@ -74,6 +74,56 @@ def build_disruption_context(
     disrupted_supplier: str,
     disruption_reason: str,
     alternatives_df: pd.DataFrame,
+    affected_region: str = "",
+    web_leads: Optional[str] = None,
+) -> str:
+    """Build a compact text summary of the disruption scenario, sized
+    for inclusion in an AI prompt.
+
+    affected_region and web_leads are optional: pass affected_region
+    when the user names the disrupted region (e.g. "Chennai" after a
+    flood), and web_leads when a local directory match wasn't found and
+    a live web search (see utils.ai_engine.summarize_web_leads) was run
+    instead.
+    """
+    lines = [
+        f"ITEM AFFECTED: {item_name}",
+        f"CURRENT STOCK: {current_quantity} units",
+        f"ESTIMATED DAILY USAGE: {daily_usage_rate} units/day",
+        f"DAYS UNTIL STOCKOUT: {days_left if days_left is not None else 'unknown'}",
+        f"DISRUPTED SUPPLIER: {disrupted_supplier or 'not specified'}",
+        f"REGION AFFECTED: {affected_region or 'not specified'}",
+        f"REASON FOR DISRUPTION: {disruption_reason or 'not specified'}",
+    ]
+
+    if alternatives_df.empty:
+        lines.append("ALTERNATIVE SUPPLIERS FOUND IN DIRECTORY: none")
+        if web_leads:
+            lines.append(
+                "LIVE WEB SEARCH LEADS (found in real time, unverified):\n"
+                f"{web_leads}"
+            )
+    else:
+        lines.append("ALTERNATIVE SUPPLIERS FOUND (fastest first):")
+        lines.append(alternatives_df.head(5).to_string(index=False))
+
+    return "\n".join(lines)
+
+
+
+
+
+
+
+
+'''def build_disruption_context(
+    item_name: str,
+    current_quantity: float,
+    daily_usage_rate: float,
+    days_left: Optional[float],
+    disrupted_supplier: str,
+    disruption_reason: str,
+    alternatives_df: pd.DataFrame,
 ) -> str:
     """Build a compact text summary of the disruption scenario, sized
     for inclusion in an AI prompt.
@@ -93,4 +143,4 @@ def build_disruption_context(
         lines.append("ALTERNATIVE SUPPLIERS FOUND (fastest first):")
         lines.append(alternatives_df.head(5).to_string(index=False))
 
-    return "\n".join(lines)
+    return "\n".join(lines)'''

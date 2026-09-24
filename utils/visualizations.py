@@ -88,15 +88,6 @@ def shipping_delay_chart(df: pd.DataFrame):
     fig.update_layout(xaxis_title="")
     return fig
 
-
-
-
-
-
-
-
-
-
 def alternate_suppliers_chart(df: pd.DataFrame):
     supplier_col = find_column(df, ["supplier", "vendor"])
     lead_col = find_column(df, ["lead time", "delivery time", "days"])

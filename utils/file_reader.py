@@ -123,20 +123,6 @@ def generate_sample_shipping() -> bytes:
     return buffer.getvalue()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def read_suppliers(file) -> pd.DataFrame:
     """Read a supplier directory CSV into a DataFrame.
 

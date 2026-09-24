@@ -5,3 +5,4 @@ pypdf>=4.3
 groq>=0.11
 plotly>=5.24
 python-dotenv>=1.0
+ddgs>=9.0
