@@ -47,6 +47,48 @@ def _client(api_key: str) -> Groq:
     return Groq(api_key=api_key)
 
 
+CLASSIFY_PROMPT = (
+    "Classify the user's question into exactly one word: contract, "
+    "data, or hybrid. Use 'contract' if it's only about vendor "
+    "contract terms (pricing, SLAs, penalties, termination). Use "
+    "'data' if it's only about inventory or shipping numbers. Use "
+    "'hybrid' if it needs both. Reply with only that one word, "
+    "nothing else."
+)
+
+
+def classify_question(
+    question: str,
+    api_key: str,
+    model: str = "openai/gpt-oss-120b",
+) -> str:
+    """Classify a question as 'contract', 'data', or 'hybrid' so the
+    router can dispatch it to the right agent.
+    """
+    client = _client(api_key)
+
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            max_tokens=5,
+            messages=[
+                {"role": "system", "content": CLASSIFY_PROMPT},
+                {"role": "user", "content": question},
+            ],
+        )
+    except Exception as exc:
+        raise AIEngineError(f"Groq API error: {exc}") from exc
+
+    label = (response.choices[0].message.content or "").strip().lower()
+    if "contract" in label:
+        return "contract"
+    if "data" in label:
+        return "data"
+    return "hybrid"
+
+
+
+
 def ask_question(
     question: str,
     context: str,
@@ -89,12 +131,6 @@ def ask_question(
         raise AIEngineError(f"Groq API error: {exc}") from exc
 
     return response.choices[0].message.content
-
-
-
-
-
-
 
 
 DISRUPTION_ADVISOR_PROMPT = (
